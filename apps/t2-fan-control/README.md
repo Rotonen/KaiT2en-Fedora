@@ -121,38 +121,29 @@ Configurations from the earlier preset-based controller do not describe the new 
 ```bash
 make
 sudo make install
+sudo make activate
 ```
-This step is mandatory. It puts the binary, desktop entry, icon and systemd service in the correct system locations, then enables and starts `t2-fancontrol.service`.
 
-If `t2fanrd.service` is present, `sudo make install` disables and stops it automatically to avoid conflicts.
+`make install` stages files only; use `DESTDIR=/path/to/stage` for packaging.
+`make activate` reloads systemd, enables and starts `t2-fancontrol.service`,
+refreshes the icon cache, and disables the old `t2fanrd.service` if present.
 
-`sudo make install` does all of the following:
+The staged payload contains:
 
-- installs the binary to `/usr/local/bin/t2-fancontrol-gtk`
-- installs the desktop entry to `/usr/local/share/applications/org.t2fancontrol.gtk.desktop`
-- installs the icon to `/usr/local/share/icons/hicolor/scalable/apps/org.t2fancontrol.gtk.svg`
-- installs the systemd unit to `/usr/local/lib/systemd/system/t2-fancontrol.service`
-- reloads systemd
-- enables and starts `t2-fancontrol.service`
-- disables and stops `t2fanrd.service` if it exists
+- `/usr/local/bin/t2-fancontrol-gtk`
+- `/usr/local/share/applications/org.t2fancontrol.gtk.desktop`
+- `/usr/local/share/icons/hicolor/scalable/apps/org.t2fancontrol.gtk.svg`
+- `/usr/local/lib/systemd/system/t2-fancontrol.service`
 
 ## Uninstall
 
 ```bash
+sudo make deactivate
 sudo make uninstall
 ```
 
-This removes the installed files, disables `t2-fancontrol.service`, and re-enables `t2fanrd.service` if it is present on the system.
-
-`sudo make uninstall` does all of the following:
-
-- disables and stops `t2-fancontrol.service`
-- removes the installed binary
-- removes the desktop entry
-- removes the installed icon
-- removes the installed systemd unit
-- reloads systemd
-- re-enables and starts `t2fanrd.service` if it exists
+`make deactivate` stops the service and restores `t2fanrd.service` when present.
+`make uninstall` removes the files only and also honors `DESTDIR`.
 
 ## Build Dependencies
 

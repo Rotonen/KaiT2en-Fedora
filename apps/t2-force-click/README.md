@@ -46,15 +46,17 @@ make build
 
 ```sh
 sudo make install
+sudo make activate
 ```
 
-This installs:
+`make install` stages files only and accepts `DESTDIR` for packaging.
+`make activate` enables and starts `t2-force-click.service` and refreshes the
+icon cache. The staged files are:
 
 - `/usr/local/bin/t2-force-click`
 - `/usr/local/share/applications/org.t2forceclick.gtk.desktop`
 - `/usr/local/share/icons/hicolor/scalable/apps/org.t2forceclick.gtk.svg`
-- `/usr/local/lib/systemd/system/t2-force-click.service` (enabled and
-  started automatically)
+- `/usr/local/lib/systemd/system/t2-force-click.service`
 
 ## Installed files and state
 

@@ -6,6 +6,7 @@ require_root
 require_repo_root
 require_fedora
 require_min_kernel 7 0
+register_cargo_workspace_cleanup
 
 # Asked before anything runs so the rest of the installation is unattended.
 # KAIT2EN_INSTALL_TOUCHBAR=1|0 answers it ahead of time. Without a terminal

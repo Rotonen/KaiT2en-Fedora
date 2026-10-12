@@ -8,6 +8,7 @@ require_root
 require_repo_root
 require_fedora
 require_command dnf sudo systemctl udevadm getent groupadd usermod
+register_cargo_workspace_cleanup
 
 target_user="${SUDO_USER:-}"
 [[ -n "$target_user" && "$target_user" != root ]] ||
@@ -51,7 +52,7 @@ device_access_ready() {
 }
 
 clean_build() {
-	clean_cargo_build "$APP_DIR" "$target_user"
+	clean_cargo_project kait2en-touchbar "$target_user"
 }
 
 install_dependencies() {
@@ -65,11 +66,11 @@ prepare_device_access() {
 }
 
 build_and_install() {
-	if ! sudo -H -u "$target_user" make -C "$APP_DIR" build; then
+	if ! build_cargo_project kait2en-touchbar "$target_user"; then
 		clean_build
 		return 1
 	fi
-	if ! make -C "$APP_DIR" install; then
+	if ! stage_cargo_project kait2en-touchbar; then
 		clean_build
 		return 1
 	fi
@@ -89,12 +90,9 @@ configure_system() {
 		user_systemctl disable --now react-drm.service || warn "could not stop react-drm.service"
 	fi
 
-	systemctl daemon-reload
 	# The attach service only switches the panel while the daemon is enabled,
 	# so enable the daemon first.
-	systemctl --global enable kait2en-touchbar.service
-	systemctl enable kait2en-touchbar-attach.service
-	udevadm control --reload
+	activate_cargo_project kait2en-touchbar
 	udevadm trigger --subsystem-match=usb --attr-match=idVendor=05ac --attr-match=idProduct=8102 --action=add
 	if device_access_ready; then
 		udevadm trigger --subsystem-match=usb --attr-match=idVendor=05ac --attr-match=idProduct=8302 --action=add

@@ -20,18 +20,25 @@ packages depend on that package for access to the internal CDC-NCM link.
 `protocols/` feature-specific wire protocols, `libs/` supporting libraries,
 `kernel/` kernel code, `config/` application defaults, and `integration/` files
 consumed by systemd, D-Bus, fprintd, SELinux or NetworkManager. Only directories
-with an implementation are present. Each component retains its own Cargo lockfile.
-Building one does not resolve the dependencies of unrelated features.
+with an implementation are present. The installable Rust components are members
+of the repository Cargo workspace and share its root
+`Cargo.lock`; the root Makefile still builds and tests only the selected
+package.
 
 ## Build and stage
 
-From any t2-services feature directory:
+From any installable Rust feature directory, use its forwarding Makefile:
 
 ```sh
 make build
 make test
 make install PREFIX=/usr DESTDIR=/tmp/t2-package
 ```
+
+Installation only stages files. Activate host services separately with
+`make activate`; remove them with `make deactivate` before `make uninstall`.
+The same targets are available from the repository root with
+`PROJECT=t2-ave`, `PROJECT=t2-touchid` or `PROJECT=t2-journal`.
 
 Shared integration uses `make -C shared install` with the same prefix and staging
 variables. Installation never starts services, runs modprobe, changes PAM or

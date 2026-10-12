@@ -50,7 +50,10 @@ and CPU, dGPU and fin stack temperatures. It has no settings.
 ```
 make build
 sudo make install
+sudo make activate
 ```
 
-`make install` installs the binary, the desktop file, the icon and
-`t2-zonepowerd.service`, and enables the service.
+`make install` stages files only and accepts `DESTDIR` for packaging.
+`make activate` enables and starts `t2-zonepowerd.service`, then refreshes the
+icon cache. Deactivate before removing the installed files with
+`sudo make deactivate` and `sudo make uninstall`.

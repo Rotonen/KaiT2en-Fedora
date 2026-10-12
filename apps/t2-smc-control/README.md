@@ -35,9 +35,11 @@ make build
 
 ```sh
 sudo make install
+sudo make activate
 ```
 
-This installs:
+`make install` stages files only and accepts `DESTDIR` for packaging.
+`make activate` refreshes the icon cache. The staged files are:
 
 - `/usr/local/bin/t2-smc-control`
 - `/usr/local/share/applications/org.t2smccontrol.gtk.desktop`

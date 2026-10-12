@@ -8,6 +8,7 @@ REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd -P)"
 # One error ledger for the complete installation, inherited by child scripts.
 # A failing atomic step stops only that step; run_step continues its siblings.
 INSTALL_REPORT_OWNER=0
+CARGO_WORKSPACE_CLEANUP=0
 if [[ -z "${KAIT2EN_INSTALL_ERRORS:-}" ]]; then
 	KAIT2EN_INSTALL_ERRORS=$(mktemp /tmp/kait2en-install-errors.XXXXXX)
 	export KAIT2EN_INSTALL_ERRORS
@@ -49,6 +50,11 @@ installation_summary() {
 installer_exit() {
 	local status=$1
 	trap - ERR EXIT
+	if (( INSTALL_REPORT_OWNER && CARGO_WORKSPACE_CLEANUP )); then
+		if ! clean_cargo_workspace; then
+			warn "could not remove shared Cargo workspace build artifacts"
+		fi
+	fi
 	if (( INSTALL_REPORT_OWNER )); then
 		installation_summary || status=1
 	fi
@@ -91,14 +97,65 @@ warn() {
 		printf '[kait2en] error: cannot write warning report\n' >&2
 }
 
-clean_cargo_build() {
-	local path=$1 target_user=$2
+register_cargo_workspace_cleanup() {
+	CARGO_WORKSPACE_CLEANUP=1
+}
+
+cargo_project_make() {
+	local project=$1
+	shift
+	make --no-print-directory -C "$REPO_ROOT" PROJECT="$project" "$@"
+}
+
+# Install: build, stage files, activate, then clean the project. Removal:
+# deactivate, uninstall. The outermost installer cleans the shared workspace
+# once after all project steps.
+build_cargo_project() {
+	local project=$1 target_user=$2 build_group target_dir="$REPO_ROOT/target"
+	build_group=$(id -gn "$target_user")
+	if [[ -d "$target_dir" && $(stat -c '%U' "$target_dir") != "$target_user" ]]; then
+		chown -R "$target_user:$build_group" "$target_dir"
+	fi
+	sudo -H -u "$target_user" make --no-print-directory -C "$REPO_ROOT" \
+		PROJECT="$project" build
+}
+
+stage_cargo_project() {
+	cargo_project_make "$1" install "${@:2}"
+}
+
+activate_cargo_project() {
+	cargo_project_make "$1" activate "${@:2}"
+}
+
+clean_cargo_project() {
+	local project=$1 target_user=$2
 	if [[ "${KAIT2EN_CARGO_CLEAN:-1}" == 0 ]]; then
 		return 0
 	fi
-	if ! sudo -H -u "$target_user" make -C "$path" clean; then
-		warn "could not remove Cargo build artifacts below $path"
+	if [[ -n "$target_user" && "$target_user" != root ]]; then
+		if ! sudo -H -u "$target_user" make --no-print-directory -C "$REPO_ROOT" \
+			PROJECT="$project" clean; then
+			warn "could not remove Cargo build artifacts for $project"
+		fi
+	elif ! cargo_project_make "$project" clean; then
+		warn "could not remove Cargo build artifacts for $project"
 	fi
+}
+
+deactivate_cargo_project() {
+	cargo_project_make "$1" deactivate "${@:2}"
+}
+
+uninstall_cargo_project() {
+	cargo_project_make "$1" uninstall "${@:2}"
+}
+
+clean_cargo_workspace() {
+	if [[ "${KAIT2EN_CARGO_CLEAN:-1}" == 0 ]]; then
+		return 0
+	fi
+	make --no-print-directory -C "$REPO_ROOT" clean-workspace
 }
 
 fail() {

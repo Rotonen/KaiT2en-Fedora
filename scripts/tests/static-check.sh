@@ -37,6 +37,8 @@ shell_files=(
 	scripts/tests/install-launcher.sh
 	scripts/tests/static-check.sh
 	scripts/tests/cargo-dispatch.sh
+	scripts/tests/cargo-cleanup.sh
+	scripts/tests/rust-workspace-installer.sh
 	scripts/tests/prepare-install.sh
 	scripts/tests/release-bootstrap.sh
 	scripts/tests/run-step-continuation.sh
@@ -107,8 +109,9 @@ grep -Fq 'device_access_ready' apps/t2-touchbar/install.sh
 # ISOs up to v0.1.12 delegate to the old installer path.
 grep -Fq 'auto-installer/runtime' packaging/installer/runtime/kait2en-install
 grep -Fq '"$BIN" --detach' apps/t2-touchbar/uninstall.sh
-grep -Fq 'clean_cargo_build "$APP_DIR"' apps/t2-touchbar/install.sh
-grep -Fq 'make -C "$path" clean' scripts/fedora/lib.sh
+grep -Fq 'clean_cargo_project kait2en-touchbar "$target_user"' apps/t2-touchbar/install.sh
+grep -Fq '$(CARGO) clean --package $(PROJECT)' Makefile
+grep -Fq 'clean-workspace' scripts/fedora/lib.sh
 grep -Fq 'device_group_is_live' apps/t2-touchbar/install.sh
 grep -Fq 'kait2en-touchbar --attach' \
 	apps/t2-touchbar/integration/systemd/system/kait2en-touchbar-attach.service
@@ -288,4 +291,6 @@ bash scripts/tests/terminal-launcher.sh
 bash scripts/tests/iso-download.sh
 bash scripts/tests/edition-catalog.sh
 bash scripts/tests/cargo-dispatch.sh
+bash scripts/tests/cargo-cleanup.sh
+bash scripts/tests/rust-workspace-installer.sh
 printf 'Installer static checks passed.\n'

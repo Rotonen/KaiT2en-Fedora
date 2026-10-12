@@ -5,6 +5,7 @@ source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib.sh"
 require_root
 require_repo_root
 require_fedora
+register_cargo_workspace_cleanup
 
 OBSOLETE_UNITS=(
 	kait2en-t2-smc-charge-limit.service
@@ -71,33 +72,43 @@ remove_t2_cpu_control() {
 		warn "could not refresh the icon cache"
 }
 
-clean_rust_build() {
-	local path=$1 target_user=$2
-	clean_cargo_build "$path" "$target_user"
-}
-
 install_rust_app() {
-	local path=$1 name=$2 target_user
+	local project=$1 name=$2 target_user
 	info "building and installing $name"
 
 	target_user="${SUDO_USER:-}"
 	[[ -n "$target_user" && "$target_user" != root ]] ||
 		fail "$name must be built for the user who invoked sudo"
 
-	if ! sudo -H -u "$target_user" make -C "$path" build; then
-		clean_rust_build "$path" "$target_user"
+	if ! build_cargo_project "$project" "$target_user"; then
+		clean_cargo_project "$project" "$target_user"
 		warn "$name build failed; skipping this app and continuing"
 		return 0
 	fi
-	if ! make -C "$path" install; then
-		clean_rust_build "$path" "$target_user"
+	if ! stage_cargo_project "$project"; then
+		clean_cargo_project "$project" "$target_user"
 		warn "$name installation failed; continuing with the remaining apps"
+		return 0
+	fi
+	if ! activate_cargo_project "$project"; then
+		clean_cargo_project "$project" "$target_user"
+		warn "$name activation failed; continuing with the remaining apps"
 		return 0
 	fi
 	if [[ "$name" == t2-journal ]]; then
 		python3 "$REPO_ROOT/packaging/lifecycle/kait2en-lifecycle.py" t2-journal record-source || warn "could not record t2-journal installation ownership"
 	fi
-	clean_rust_build "$path" "$target_user"
+	clean_cargo_project "$project" "$target_user"
+}
+
+remove_cargo_project() {
+	local project=$1 name=$2
+	if ! deactivate_cargo_project "$project"; then
+		warn "unable to deactivate $name; continuing"
+	fi
+	if ! uninstall_cargo_project "$project"; then
+		warn "unable to remove $name files; continuing"
+	fi
 }
 
 install_gpu_control() {
@@ -112,29 +123,21 @@ install_gpu_control() {
 	case "$model" in
 		MacBookPro15,1|MacBookPro16,1|MacBookPro16,4)
 			info "installing hybrid graphics support for $model"
-			if ! make -C "$REPO_ROOT/apps/t2-dgpu-control" uninstall; then
-				warn "unable to remove the inactive t2-dgpu-control app; continuing"
-			fi
+			remove_cargo_project t2-dgpu-control t2-dgpu-control
 			if ! "$REPO_ROOT/apps/t2-hybrid-gpu-control/install.sh"; then
 				warn "t2-hybrid-gpu-control installation failed; continuing"
 			fi
 			;;
 		MacBookPro15,3)
-			if ! make -C "$REPO_ROOT/apps/t2-hybrid-gpu-control" uninstall; then
-				warn "unable to remove the inactive t2-hybrid-gpu-control app; continuing"
-			fi
+			remove_cargo_project t2-hybrid-gpu-control t2-hybrid-gpu-control
 			if ! "$REPO_ROOT/apps/t2-dgpu-control/install.sh"; then
 				warn "t2-dgpu-control installation failed; continuing"
 			fi
 			;;
 		*)
 			info "Model $model has no supported switchable AMD dGPU"
-			if ! make -C "$REPO_ROOT/apps/t2-hybrid-gpu-control" uninstall; then
-				warn "unable to remove t2-hybrid-gpu-control; continuing"
-			fi
-			if ! make -C "$REPO_ROOT/apps/t2-dgpu-control" uninstall; then
-				warn "unable to remove t2-dgpu-control; continuing"
-			fi
+			remove_cargo_project t2-hybrid-gpu-control t2-hybrid-gpu-control
+			remove_cargo_project t2-dgpu-control t2-dgpu-control
 			;;
 	esac
 }
@@ -148,10 +151,10 @@ install_app_assets() {
 }
 run_step "install app assets" install_app_assets
 run_step "remove obsolete apps" remove_obsolete_apps
-run_step "t2-fan-control" install_rust_app "$REPO_ROOT/apps/t2-fan-control" "t2-fan-control"
-run_step "t2-smc-control" install_rust_app "$REPO_ROOT/apps/t2-smc-control" "t2-smc-control"
-run_step "t2-power-explorer" install_rust_app "$REPO_ROOT/apps/t2-power-explorer" "t2-power-explorer"
-run_step "t2-force-click" install_rust_app "$REPO_ROOT/apps/t2-force-click" "t2-force-click"
+run_step "t2-fan-control" install_rust_app t2-fancontrol-gtk t2-fan-control
+run_step "t2-smc-control" install_rust_app t2-smc-control t2-smc-control
+run_step "t2-power-explorer" install_rust_app t2-power-explorer t2-power-explorer
+run_step "t2-force-click" install_rust_app t2-force-click t2-force-click
 if ! has_touch_bar; then
 	info "no Touch Bar on this model; skipping kait2en-touchbar"
 elif [[ "${KAIT2EN_INSTALL_TOUCHBAR:-1}" == 1 ]]; then
@@ -162,10 +165,10 @@ elif [[ -x /usr/local/bin/kait2en-touchbar ]]; then
 else
 	info "kait2en-touchbar not selected; the native Touch Bar row stays active"
 fi
-run_step "t2-journal" install_rust_app "$REPO_ROOT/t2-services/t2-journal" "t2-journal"
+run_step "t2-journal" install_rust_app t2-journal t2-journal
 run_step "GPU control" install_gpu_control
 run_step "remove t2-cpu-control" remove_t2_cpu_control
-run_step "t2-zone-power" install_rust_app "$REPO_ROOT/apps/t2-zone-power" "t2-zone-power"
+run_step "t2-zone-power" install_rust_app t2-zonepower-gtk t2-zone-power
 if ! "$REPO_ROOT/apps/t2-kernel-builder/install.sh"; then
 	warn "t2-kernel-builder installation failed; continuing because it is optional"
 	warn "retry it later with: sudo $REPO_ROOT/apps/t2-kernel-builder/install.sh"

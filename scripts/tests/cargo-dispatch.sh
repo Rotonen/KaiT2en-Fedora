@@ -16,7 +16,8 @@ touch "$CARGO_LOG"
 
 run_make() {
 	make --no-print-directory --silent -C "$repo_root" \
-		CARGO="$tmp_dir/cargo" TARGET_DIR="$tmp_dir/target" "$@"
+		CARGO="$tmp_dir/cargo" TARGET_DIR="$tmp_dir/target" \
+		PROJECT_DIR="$tmp_dir/project" "$@"
 }
 
 projects=(
@@ -60,5 +61,12 @@ run_make PROJECT=t2-fancontrol-gtk check-build
 run_make PROJECT=t2-fancontrol-gtk clean
 grep -Fqx "clean --package t2-fancontrol-gtk --target-dir $tmp_dir/target" \
 	"$CARGO_LOG"
+
+mkdir -p "$tmp_dir/legacy-app/target" "$tmp_dir/legacy-library/target"
+run_make \
+	LEGACY_TARGET_DIRS="$tmp_dir/legacy-app/target $tmp_dir/legacy-library/target" \
+	clean-workspace
+grep -Fqx "clean --target-dir $tmp_dir/target" "$CARGO_LOG"
+[[ ! -e "$tmp_dir/legacy-app/target" && ! -e "$tmp_dir/legacy-library/target" ]]
 
 printf 'Cargo project dispatch checks passed.\n'

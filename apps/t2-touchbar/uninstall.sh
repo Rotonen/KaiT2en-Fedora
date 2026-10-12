@@ -34,10 +34,9 @@ user_systemctl() {
 
 stop_services() {
 	user_systemctl stop kait2en-touchbar.service || true
-	systemctl --global disable kait2en-touchbar.service 2>/dev/null || true
 	# Sessions of other users run their own instance of the global unit.
 	pkill -x kait2en-touchbar || true
-	systemctl disable --now kait2en-touchbar-attach.service 2>/dev/null || true
+	deactivate_cargo_project kait2en-touchbar
 }
 
 restore_firmware_row() {
@@ -53,7 +52,7 @@ restore_firmware_row() {
 }
 
 remove_files() {
-	make -C "$APP_DIR" uninstall
+	uninstall_cargo_project kait2en-touchbar
 	rm -f /etc/kait2en/touchbar.toml
 	rmdir --ignore-fail-on-non-empty /etc/kait2en 2>/dev/null || true
 	systemctl daemon-reload

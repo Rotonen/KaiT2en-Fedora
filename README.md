@@ -16,8 +16,10 @@ You will receive kernel updates directly from Fedora and the latest T2 modules f
 
 Follow the [installation guide](https://kait2en.org/documentation.html#overview).
 
-Some Rust apps are built during installation, and their Cargo target folders
-are cleaned by default. Set `KAIT2EN_CARGO_CLEAN=0` to keep them.
+The installable Rust apps share one Cargo workspace. Installer scripts run a
+package-scoped Cargo clean after each project and remove the shared target once
+at the outermost installer exit by default. Set `KAIT2EN_CARGO_CLEAN=0` to keep
+the build cache.
 
 ## Community
 

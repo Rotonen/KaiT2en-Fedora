@@ -15,8 +15,13 @@ Touch ID is required.
 ## Build & Install
 
 ```bash
-make && sudo make install
+make build
+sudo make install
 ```
+
+The Rust executable is part of the repository Cargo workspace. `make install`
+only stages files and accepts `DESTDIR`; `make activate` is a no-op for this
+command-line tool. The repository root Makefile accepts `PROJECT=t2-journal`.
 
 ## Usage
 

@@ -7,6 +7,7 @@ require_root
 install_kait2en_fonts
 require_fedora
 require_command cargo make sudo
+register_cargo_workspace_cleanup
 
 is_supported_model() {
 	local class dev model vendor has_intel=0 has_amd=0
@@ -51,8 +52,9 @@ target_user="${SUDO_USER:-}"
 	fail "t2-hybrid-gpu-control must be built for the user who invoked sudo"
 
 info "building and installing t2-hybrid-gpu-control"
-sudo -H -u "$target_user" make -C "$APP_DIR" build
-make -C "$APP_DIR" install
-clean_cargo_build "$APP_DIR" "$target_user"
+build_cargo_project t2-hybrid-gpu-control "$target_user"
+stage_cargo_project t2-hybrid-gpu-control
+activate_cargo_project t2-hybrid-gpu-control
+clean_cargo_project t2-hybrid-gpu-control "$target_user"
 
 info "t2-hybrid-gpu-control installed"
