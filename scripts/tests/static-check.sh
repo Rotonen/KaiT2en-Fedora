@@ -36,6 +36,7 @@ shell_files=(
 	scripts/tests/iso-download.sh
 	scripts/tests/install-launcher.sh
 	scripts/tests/static-check.sh
+	scripts/tests/cargo-dispatch.sh
 	scripts/tests/prepare-install.sh
 	scripts/tests/release-bootstrap.sh
 	scripts/tests/run-step-continuation.sh
@@ -286,4 +287,5 @@ bash scripts/tests/release-bootstrap.sh
 bash scripts/tests/terminal-launcher.sh
 bash scripts/tests/iso-download.sh
 bash scripts/tests/edition-catalog.sh
+bash scripts/tests/cargo-dispatch.sh
 printf 'Installer static checks passed.\n'
