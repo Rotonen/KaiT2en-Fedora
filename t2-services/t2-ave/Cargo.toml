@@ -10,6 +10,6 @@ name = "t2remote"
 path = "daemon/main.rs"
 
 [dependencies]
-anyhow = "1.0"
-clap = { version = "4.5", features = ["derive"] }
-t2-bridgexpc = { path = "../shared/protocols/t2-bridgexpc" }
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+t2-bridgexpc = { workspace = true }

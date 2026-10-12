@@ -6,8 +6,8 @@ license = "GPL-3.0-or-later"
 description = "BiometricKit protocol for the Apple T2 Touch ID sensor over BridgeXPC"
 
 [dependencies]
-anyhow = "1.0"
-libc = "0.2"
+anyhow = { workspace = true }
+libc = { workspace = true }
 plist = "1.7"
-t2-bridgexpc = { path = "../../../shared/protocols/t2-bridgexpc" }
-uuid = { version = "1.18", features = ["v4"] }
+t2-bridgexpc = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }

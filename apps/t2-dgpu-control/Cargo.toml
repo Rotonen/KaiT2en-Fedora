@@ -4,10 +4,6 @@ version = "0.1.0"
 edition = "2024"
 license = "GPL-3.0-or-later"
 
-[dependencies.adw]
-package = "libadwaita"
-version = "0.7"
-
 [dependencies]
-gtk4 = "0.9"
-
+adw = { workspace = true }
+gtk4 = { workspace = true }

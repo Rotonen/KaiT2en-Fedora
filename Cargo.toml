@@ -1,0 +1,62 @@
+[workspace]
+members = [
+    "apps/t2-dgpu-control",
+    "apps/t2-fan-control",
+    "apps/t2-force-click",
+    "apps/t2-hybrid-gpu-control",
+    "apps/t2-power-explorer",
+    "apps/t2-smc-control",
+    "apps/t2-touchbar",
+    "apps/t2-zone-power",
+    "t2-services/shared/protocols/t2-bridgexpc",
+    "t2-services/t2-ave",
+    "t2-services/t2-journal",
+    "t2-services/t2-journal/libs/macos-unifiedlogs",
+    "t2-services/t2-touchid",
+    "t2-services/t2-touchid/protocols/t2-biometrickit",
+]
+default-members = [
+    "apps/t2-dgpu-control",
+    "apps/t2-fan-control",
+    "apps/t2-force-click",
+    "apps/t2-hybrid-gpu-control",
+    "apps/t2-power-explorer",
+    "apps/t2-smc-control",
+    "apps/t2-touchbar",
+    "apps/t2-zone-power",
+    "t2-services/t2-ave",
+    "t2-services/t2-journal",
+    "t2-services/t2-touchid",
+]
+resolver = "3"
+
+[workspace.dependencies]
+anyhow = "1"
+chrono = "0.4"
+clap = "4.5"
+evdev = "0.13"
+flate2 = "1.1"
+glib = "0.20"
+glob = "0.3"
+gtk4 = "0.9"
+input = "0.9"
+input-linux = "0.7"
+libc = "0.2"
+adw = { package = "libadwaita", version = "0.7" }
+regex = "1.12"
+serde = "1"
+serde_json = "1"
+signal-hook = "0.3"
+socket2 = "0.6"
+thiserror = "2"
+uuid = "1.18"
+zbus = "5"
+
+[workspace.dependencies.macos-unifiedlogs]
+path = "t2-services/t2-journal/libs/macos-unifiedlogs"
+
+[workspace.dependencies.t2-biometrickit]
+path = "t2-services/t2-touchid/protocols/t2-biometrickit"
+
+[workspace.dependencies.t2-bridgexpc]
+path = "t2-services/shared/protocols/t2-bridgexpc"

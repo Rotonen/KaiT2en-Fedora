@@ -7,13 +7,13 @@ description = "Dark-first Touch Bar daemon for Apple T2 Macs"
 
 [dependencies]
 ab_glyph = { version = "0.2.32", features = ["variable-fonts"] }
-anyhow = "1.0"
+anyhow = { workspace = true }
 drm = "0.14"
-input = "0.9"
-input-linux = "0.7"
+input = { workspace = true }
+input-linux = { workspace = true }
 input-linux-sys = "0.9"
-libc = "0.2"
-serde = { version = "1", features = ["derive"] }
+libc = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 tiny-skia = { version = "0.12.0", default-features = false, features = ["std", "simd"] }
 toml = "0.8"
-zbus = "5"
+zbus = { workspace = true }
